@@ -27,7 +27,10 @@ var engine, world, body; //defined global variables to hold the game's viewport 
 var viewport;
 let ground = null;
 let ball;
+let platform1 = null;
+let platform2 = null;
 const land = [];
+
 
 //object for the background
 
@@ -113,6 +116,7 @@ class Floor extends EnvObj {
 	//generates the floor (bottom plaform)
 }
 
+/*
 class Platform extends EnvObj {
 	constructor(x, y, width, height, angle = 0) {
 		super(x, y, width, height);
@@ -128,6 +132,7 @@ class Platform extends EnvObj {
 	}
 	show() {
 		push();
+		angleMode(RADIANS)
 		translate(this.width / 2, this.height / 2)
 		rotate(this.body.angle)
 		fill('#00ff00'); //set tXhe fill colour
@@ -137,16 +142,71 @@ class Platform extends EnvObj {
 		pop();
 	}	
 }
+*/
 
+class c_special {
+	constructor(x, y, width, height, angle) {
+		let options = {
+			isStatic: true,
+			restitution: 0.99,
+			friction: 0.030,
+			density: 0.99,
+			frictionAir: 0.032,
+            angle: angle,
+		}
+		//create the body
+		this.body = Matter.Bodies.rectangle(x, y, width, height, options);
+		Matter.World.add(world, this.body); //add to the matter world
+		
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+	}
+
+	body() {
+		return this.body; //return the created body
+	}
+
+	//dont forget bodies are added to the matter world meaning even if not visible the physics engine still manages it
+	remove() {
+		Matter.World.remove(world, this.body);
+	}
+
+	rotate() {
+		//Matter.Body.rotate(this.body, Math.PI/20);
+	//	Matter.Body.setAngle(this.body, Math.PI/6);
+    //Matter.Body.rotate(this.body, 5);
+	}
+
+	show() {
+
+		this.rotate();
+
+		let pos = this.body.position; //create an shortcut alias 
+		let angle = this.body.angle;
+
+
+		push(); //p5 translation 
+			stroke("#000000");
+			fill('#00ff00');
+			rectMode(CENTER); //switch centre to be centre rather than left, top
+			translate(pos.x, pos.y);
+			rotate(angle);
+			rect(0, 0, this.width, this.height);
+		pop();
+	}
+}
 class c_fuzzball {
 	constructor(x, y, diameter) {
 		let options = {
-			restitution: 1,
-			friction: 0.005,
+			restitution: 0,
+			friction: 0.000,
 			density: 0.95,
-			frictionAir: 0.005,
+			frictionAir: 0,
+			speed: 20
 		}
-		this.body = Matter.Bodies.circle(x, y, diameter/2, options); //matter.js used radius rather than diameter
+		this.body = Matter.Bodies.circle(x, y, diameter/2, options); //matterbody.circle(x, y, Matter.Common.random(10, 20), { friction: 0.00001, restitution: 0.5, density: 0.001 });
 		Matter.World.add(world, this.body);
 		
 		this.x = x;
@@ -210,13 +270,21 @@ function setup() {
 	Matter.Engine.run(engine);
 	frameRate(60); //specifies the number of (refresh) frames displayed every second
 	ground = new Floor(vp_width / 2, vp_height - 25, vp_width, vp_height / 100 * 4);
-	ball = new c_fuzzball(vp_width / 100 * 5, 160, 10);
-	const row1 = [(new Platform(vp_width / 100 * 3, 170, vp_width / 100 * 50, vp_height / 100 * 2, 0)), (new Platform(vp_width / 100 * 53, 153.75, vp_width / 100 * 35, vp_height / 100 * 2, 0.025))];  
+	ball = new c_fuzzball(0, 40, 40);
+	platform1 = new c_special(vp_width / 100 * 45, 170, vp_width / 100 * 80, vp_height / 100 * 2, 0.02)
+	platform2 = new c_special(vp_width / 100 * 55, 330, vp_width / 100 * 80, vp_height / 100 * 2, -0.02)
+	
+	
+	/*const row1 = [(new Platform(vp_width / 100 * 3, 170, vp_width / 100 * 50, vp_height / 100 * 2, 0))], (new Platform(vp_width / 100 * 53, 153.75, vp_width / 100 * 35, vp_height / 100 * 2, 0.025))];  
 	const row2 = [(new Platform(vp_width -(vp_width / 100 * 88.5), 318, vp_width / 100 * 29, vp_height / 100 * 2, -0.010)), (new Platform(vp_width -(vp_width / 100 * 60.5), 315.5, vp_width / 100 * 29, vp_height / 100 * 2, -0.005)), (new Platform(vp_width - (vp_width / 100 * 32), 325, vp_width / 100 * 29, vp_height / 100 * 2, -0.015))];
 	const row3 = [(new Platform(vp_width / 100 * 3, 465, vp_width / 100 * 29, vp_height / 100 * 2, 0.04)), (new Platform(vp_width -(vp_width / 100 * 68.25), 465, vp_width / 100 * 29, vp_height / 100 * 2, 0.04)), (new Platform(vp_width -(vp_width / 100 * 39.25), 465, vp_width / 100 * 29, vp_height / 100 * 2, 0.04))]
 	const row4 = [(new Platform(vp_width -(vp_width / 100 * 89.5), 647.5, vp_width / 100 * 29, vp_height / 100 * 2, -0.010)), (new Platform(vp_width -(vp_width / 100 * 60.5), 645, vp_width / 100 * 29, vp_height / 100 * 2, -0.005)), (new Platform(vp_width - (vp_width / 100 * 32), 655, vp_width / 100 * 29, vp_height / 100 * 2, -0.015))];
 	const row5 = [(new Platform(vp_width / 100 * 3, 800, vp_width / 100 * 29, vp_height / 100 * 2, 0.01)), (new Platform(vp_width -(vp_width / 100 * 68.25), 800, vp_width / 100 * 29, vp_height / 100 * 2, 0.01)), (new Platform(vp_width -(vp_width / 100 * 39.25), 800, vp_width / 100 * 29, vp_height / 100 * 2, 0.01))]
-	land.push(row1, row2, row3, row4, row5);
+	*/
+	//land.push(row1)
+		//, row2, row3, row4, row5);
+	
+	Matter.Body.applyForce(ball.body, ball.body.position, {x: 12, y:0});
 
 
 }
@@ -231,10 +299,14 @@ function draw() {
 	//a 'p5' defined function that runs automatically and continously (up to your system's hardware/os limit) and based on any specified frame rate
 	environment.paint_background();
 	ground.show();
-	land[0][0].show()
-	land[0][1].show()
-	land[1][0].show()
-	land[1][1].show()
+	platform1.show()
+	platform2.show()
+	Matter.Runner.create({delta:  3000})
+	//land[0][0].show()
+	//land[0][1].show()
+	//land[1][0].show()
+	
+	/*land[1][1].show()
 	land[1][2].show()
 	land[2][0].show()
 	land[2][1].show()
@@ -245,5 +317,5 @@ function draw() {
 	land[4][0].show()
 	land[4][1].show()
 	land[4][2].show()
-	ball.show()
+	*/	
 } 
