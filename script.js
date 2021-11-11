@@ -301,7 +301,6 @@ function draw() {
 	ground.show();
 	platform1.show()
 	platform2.show()
-	Matter.Runner.create({delta:  3000})
 	//land[0][0].show()
 	//land[0][1].show()
 	//land[1][0].show()
@@ -317,5 +316,6 @@ function draw() {
 	land[4][0].show()
 	land[4][1].show()
 	land[4][2].show()
-	*/	
+	*/
+	ball.show()	
 } 
