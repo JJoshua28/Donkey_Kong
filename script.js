@@ -29,8 +29,16 @@ let ground = null;
 let ball;
 let platform1 = null;
 let platform2 = null;
-const land = [];
+let platform3 = null;
+let platform4 = null;
+let platform5 = null;
 
+const balls = [];
+const land = [];
+const barrierThickness = 5;
+const notinteractable = 0x0001;
+let rightWall = null;
+let leftWall = null;
 
 //object for the background
 
@@ -145,14 +153,15 @@ class Platform extends EnvObj {
 */
 
 class c_special {
-	constructor(x, y, width, height, angle) {
+	constructor(x, y, width, height, angle, label) {
 		let options = {
 			isStatic: true,
 			restitution: 0.99,
-			friction: 0.030,
+			friction: 0.0,
 			density: 0.99,
 			frictionAir: 0.032,
             angle: angle,
+			label: label,
 		}
 		//create the body
 		this.body = Matter.Bodies.rectangle(x, y, width, height, options);
@@ -198,20 +207,26 @@ class c_special {
 	}
 }
 class c_fuzzball {
-	constructor(x, y, diameter) {
+	constructor(x, y, diameter, label) {
 		let options = {
 			restitution: 0,
 			friction: 0.000,
-			density: 0.95,
-			frictionAir: 0,
-			speed: 20
+			density: 0.7,
+			frictionAir: 0.001,
+			label: label,
+			collisionFilter: {
+				category: notinteractable
+			}
+			
 		}
 		this.body = Matter.Bodies.circle(x, y, diameter/2, options); //matterbody.circle(x, y, Matter.Common.random(10, 20), { friction: 0.00001, restitution: 0.5, density: 0.001 });
 		Matter.World.add(world, this.body);
 		
+		
 		this.x = x;
 		this.y = y;
 		this.diameter = diameter;
+		this.start = true;
 	}
 
 	body() {
@@ -221,6 +236,10 @@ class c_fuzzball {
 	show() {
 		let pos = this.body.position;
 		let angle = this.body.angle;
+		if (this.start) {
+			Matter.Body.applyForce(this.body, this.body.position, {x: 10, y:0})
+			this.start = false;
+		}	
 
 		push(); //p5 translation 
 			translate(pos.x, pos.y);
@@ -230,9 +249,48 @@ class c_fuzzball {
 			circle(0, 0, this.diameter);
 		pop();
 	}
+	collisionRightWall () {
+		Matter.Body.setVelocity(this.body, {x: -5, y:0})
+	}
+	collisionLeftWall () {
+		console.log("Rebeca")
+		Matter.Body.setVelocity(this.body, {x: 5, y:0})
+	}
 }
 
+class Barrier {
+	constructor(x, y, width, height, label) {
+		let options = {
+			isStatic: true,
+			restitution: 1,
+			friction: 0,
+			density: 0.5,
+			label,
+			collisionFilter: { //used with mouse constraints to allow/not allow iteration
+				category: notinteractable,
+			}
+		}
+		//create the body
+		this.body = Matter.Bodies.rectangle(x, y, width, height, options);
+		Matter.World.add(world, this.body); //add to the matter world
+		
+		this.x = x; //store the passed variables in the object
+		this.y = y;
+		this.width = width;
+		this.height = height;
+	}
 
+	body() {
+		return this.body; //return the created body
+	}
+
+	show() {
+		let pos = this.body.position; //create an shortcut alias 
+		rectMode(CENTER); //switch centre to be centre rather than left, top
+		fill('#00ff00'); //set the fill colour
+		rect(pos.x, pos.y, this.width, this.height); //draw the rectangle
+	}
+}
 
 
 function apply_velocity() {
@@ -270,9 +328,16 @@ function setup() {
 	Matter.Engine.run(engine);
 	frameRate(60); //specifies the number of (refresh) frames displayed every second
 	ground = new Floor(vp_width / 2, vp_height - 25, vp_width, vp_height / 100 * 4);
-	ball = new c_fuzzball(0, 40, 40);
-	platform1 = new c_special(vp_width / 100 * 45, 170, vp_width / 100 * 80, vp_height / 100 * 2, 0.02)
-	platform2 = new c_special(vp_width / 100 * 55, 330, vp_width / 100 * 80, vp_height / 100 * 2, -0.02)
+	balls.push(new c_fuzzball(150, 10, 40, "ball1"))
+	//ball = new c_fuzzball(0, 40, 40);
+	platform1 = new c_special(vp_width / 100 * 45, 170, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform1")	
+	platform2 = new c_special(vp_width / 100 * 50, 330, vp_width / 100 * 78, vp_height / 100 * 2, -0.01, "platform2")
+	platform3 = new c_special(vp_width / 100 * 45, 480, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform3")
+	platform4 = new c_special(vp_width / 100 * 50, 630, vp_width / 100 * 78, vp_height / 100 * 2, -0.01, "platform4")
+	platform5 = new c_special(vp_width / 100 * 45, 780, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform5")
+	rightWall = new Barrier(vp_width / 100 * 94, vp_height / 2, vp_width / 100 * 12, vp_height, "rightwall");
+	leftWall = new Barrier(0, vp_height / 2, vp_width / 100 * 12, vp_height, "leftwall")
+	Matter.Events.on(engine, 'collisionEnd', collisions)
 	
 	
 	/*const row1 = [(new Platform(vp_width / 100 * 3, 170, vp_width / 100 * 50, vp_height / 100 * 2, 0))], (new Platform(vp_width / 100 * 53, 153.75, vp_width / 100 * 35, vp_height / 100 * 2, 0.025))];  
@@ -284,9 +349,64 @@ function setup() {
 	//land.push(row1)
 		//, row2, row3, row4, row5);
 	
-	Matter.Body.applyForce(ball.body, ball.body.position, {x: 12, y:0});
+	//Matter.Body.applyForce(ball.body, ball.body.position, {x: 12, y:0});
+
+	
+
+}
+
+setInterval(() => {
+	balls.push(new c_fuzzball(150, 10, 40, "ball" + (balls.length + 1)))
+}, 3000);
+
+function collisions(event) {
+	//runs as part of the matter engine after the engine update, provides access to a list of all pairs that have ended collision in the current frame (if any)
+	event.pairs.forEach((collide) => { //event.pairs[0].bodyA.label
+
+		// if(
 
 
+		// ){
+
+
+		// }
+
+		if(
+			(collide.bodyA.label.slice(0, 4) == "ball" && collide.bodyB.label == "rightwall") ||
+			(collide.bodyA.label == "rightwall" && collide.bodyB.label.slice(0, 4) == "ball")
+		) {
+			console.log(collide.bodyA.label.slice(0, 4))
+			console.log(collide.bodyB.label.slice(0, 4))
+			if (collide.bodyA.label.slice(0, 4) === "ball") {
+								balls[parseInt(collide.bodyA.label.slice(4)) - 1].collisionRightWall()
+			} else {			
+				balls[parseInt(collide.bodyB.label.slice(4)) - 1].collisionRightWall()
+			}
+
+		}
+
+		if(
+			(collide.bodyA.label.slice(0, 4) == "ball" && collide.bodyB.label == "leftwall") ||
+			(collide.bodyA.label == "leftwall" && collide.bodyB.label.slice(0, 4) == "ball")
+		) {
+			console.log(collide.bodyA.label.slice(0, 4))
+			console.log(collide.bodyB.label.slice(0, 4))
+			if (collide.bodyA.label.slice(0, 4) === "ball") {
+				console.log(collide.bodyA.label)
+				console.log(parseInt(collide.bodyB.label.slice(4)))
+				balls[parseInt(collide.bodyA.label.slice(4)) - 1].collisionLeftWall()
+			} else {
+				console.log(collide.bodyB.label)
+				console.log(parseInt(collide.bodyB.label.slice(4)))				
+				balls[parseInt(collide.bodyB.label.slice(4)) - 1].collisionLeftWall()
+			}
+
+		}
+
+
+
+
+	});
 }
 
 function paint_assets() {
@@ -301,9 +421,13 @@ function draw() {
 	ground.show();
 	platform1.show()
 	platform2.show()
-	//land[0][0].show()
+	platform3.show()
+	platform4.show()
+	platform5.show()
+
 	//land[0][1].show()
 	//land[1][0].show()
+	//land[0][0].show()
 	
 	/*land[1][1].show()
 	land[1][2].show()
@@ -317,5 +441,18 @@ function draw() {
 	land[4][1].show()
 	land[4][2].show()
 	*/
-	ball.show()	
+	/*
+	for(let x = 0; x < balls.length; x++) {
+	    setTimeout(()=> {
+			balls[x].show();
+			console.log(x)
+		}, 3)	
+	}
+	*/
+	rightWall.show()
+	leftWall.show()
+	for(let x = 0; x < balls.length; x++) {
+		balls[x].show();
+		
+	}                         
 } 
