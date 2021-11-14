@@ -38,6 +38,7 @@ const land = [];
 const barrierThickness = 5;
 const notinteractable = 0x0001;
 let rightWall = null;
+let removeBall = null;
 let leftWall = null;
 
 //object for the background
@@ -59,8 +60,6 @@ const environment = {
 	},
 	addEnvObj (obj, item) {
 		if (Array.isArray(item)) {
-			console.log(true);
-			console.log(item)
 			item.forEach((element, index) => obj.push(element[index]))
 		} else {
 			obj.push(item);			
@@ -227,6 +226,7 @@ class c_fuzzball {
 		this.y = y;
 		this.diameter = diameter;
 		this.start = true;
+		this.endReached = true;
 	}
 
 	body() {
@@ -234,27 +234,31 @@ class c_fuzzball {
 	}
 
 	show() {
-		let pos = this.body.position;
-		let angle = this.body.angle;
-		if (this.start) {
-			Matter.Body.applyForce(this.body, this.body.position, {x: 10, y:0})
-			this.start = false;
-		}	
-
-		push(); //p5 translation 
-			translate(pos.x, pos.y);
-			rotate(angle);
-			fill('#ff0000');
-			ellipseMode(CENTER); //switch centre to be centre rather than left, top
-			circle(0, 0, this.diameter);
-		pop();
-	}
+		if(this.endReached) {
+			let pos = this.body.position;
+		    let angle = this.body.angle;
+			if (this.start) {
+				Matter.Body.applyForce(this.body, this.body.position, {x: 7, y:0})
+			    this.start = false;
+		    }	
+		    push(); //p5 translation 
+			  translate(pos.x, pos.y);
+			  rotate(angle);
+			  fill('#ff0000');
+			  ellipseMode(CENTER); //switch centre to be centre rather than left, top
+			  circle(0, 0, this.diameter);
+		      pop();  
+	    }
+	}	
 	collisionRightWall () {
-		Matter.Body.setVelocity(this.body, {x: -5, y:0})
+		Matter.Body.setVelocity(this.body, {x: -4, y:0})
 	}
 	collisionLeftWall () {
-		console.log("Rebeca")
-		Matter.Body.setVelocity(this.body, {x: 5, y:0})
+		Matter.Body.setVelocity(this.body, {x: 4, y:0})
+	}
+	remove() {
+		Matter.World.remove(world, this.body);
+		this.endReached = false;
 	}
 }
 
@@ -327,16 +331,16 @@ function setup() {
 	//is a 'rigid' body that can be simulated by the Matter.Engine; generally defined as rectangles, circles and other polygons)
 	Matter.Engine.run(engine);
 	frameRate(60); //specifies the number of (refresh) frames displayed every second
-	ground = new Floor(vp_width / 2, vp_height - 25, vp_width, vp_height / 100 * 4);
+	ground = new c_special(vp_width / 100 * 52, vp_height - 15, vp_width / 100 * 80, vp_height / 100 * 4, -0.01, "platform1");
 	balls.push(new c_fuzzball(150, 10, 40, "ball1"))
 	//ball = new c_fuzzball(0, 40, 40);
-	platform1 = new c_special(vp_width / 100 * 45, 170, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform1")	
-	platform2 = new c_special(vp_width / 100 * 50, 330, vp_width / 100 * 78, vp_height / 100 * 2, -0.01, "platform2")
-	platform3 = new c_special(vp_width / 100 * 45, 480, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform3")
-	platform4 = new c_special(vp_width / 100 * 50, 630, vp_width / 100 * 78, vp_height / 100 * 2, -0.01, "platform4")
-	platform5 = new c_special(vp_width / 100 * 45, 780, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform5")
-	rightWall = new Barrier(vp_width / 100 * 94, vp_height / 2, vp_width / 100 * 12, vp_height, "rightwall");
-	leftWall = new Barrier(0, vp_height / 2, vp_width / 100 * 12, vp_height, "leftwall")
+	platform1 = new c_special(vp_width / 100 * 47, 170, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform1")	
+	platform2 = new c_special(vp_width / 100 * 52, 340, vp_width / 100 * 78, vp_height / 100 * 2, -0.01, "platform2")
+	platform3 = new c_special(vp_width / 100 * 47, 490, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform3")
+	platform4 = new c_special(vp_width / 100 * 52, 640, vp_width / 100 * 78, vp_height / 100 * 2, -0.01, "platform4")
+	platform5 = new c_special(vp_width / 100 * 47, 790, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform5")
+	rightWall = new Barrier(vp_width / 100 * 97, vp_height / 2, vp_width / 100 * 12, vp_height, "rightwall");
+	leftWall = new Barrier(0, vp_height / 2, vp_width / 100 * 17, vp_height, "leftwall")
 	Matter.Events.on(engine, 'collisionEnd', collisions)
 	
 	
@@ -356,7 +360,14 @@ function setup() {
 }
 
 setInterval(() => {
-	balls.push(new c_fuzzball(150, 10, 40, "ball" + (balls.length + 1)))
+	console.log(balls.length)
+	if (removeBall != null) {
+
+		balls[removeBall] = new c_fuzzball(150, 10, 40, "ball" + (removeBall + 1))
+		removeBall = null;
+	} else {
+		balls.push(new c_fuzzball(150, 10, 40, "ball" + (balls.length + 1)))
+	}
 }, 3000);
 
 function collisions(event) {
@@ -375,10 +386,8 @@ function collisions(event) {
 			(collide.bodyA.label.slice(0, 4) == "ball" && collide.bodyB.label == "rightwall") ||
 			(collide.bodyA.label == "rightwall" && collide.bodyB.label.slice(0, 4) == "ball")
 		) {
-			console.log(collide.bodyA.label.slice(0, 4))
-			console.log(collide.bodyB.label.slice(0, 4))
 			if (collide.bodyA.label.slice(0, 4) === "ball") {
-								balls[parseInt(collide.bodyA.label.slice(4)) - 1].collisionRightWall()
+				balls[parseInt(collide.bodyA.label.slice(4)) - 1].collisionRightWall()
 			} else {			
 				balls[parseInt(collide.bodyB.label.slice(4)) - 1].collisionRightWall()
 			}
@@ -389,15 +398,9 @@ function collisions(event) {
 			(collide.bodyA.label.slice(0, 4) == "ball" && collide.bodyB.label == "leftwall") ||
 			(collide.bodyA.label == "leftwall" && collide.bodyB.label.slice(0, 4) == "ball")
 		) {
-			console.log(collide.bodyA.label.slice(0, 4))
-			console.log(collide.bodyB.label.slice(0, 4))
 			if (collide.bodyA.label.slice(0, 4) === "ball") {
-				console.log(collide.bodyA.label)
-				console.log(parseInt(collide.bodyB.label.slice(4)))
 				balls[parseInt(collide.bodyA.label.slice(4)) - 1].collisionLeftWall()
 			} else {
-				console.log(collide.bodyB.label)
-				console.log(parseInt(collide.bodyB.label.slice(4)))				
 				balls[parseInt(collide.bodyB.label.slice(4)) - 1].collisionLeftWall()
 			}
 
@@ -453,6 +456,9 @@ function draw() {
 	leftWall.show()
 	for(let x = 0; x < balls.length; x++) {
 		balls[x].show();
-		
-	}                         
+		if (balls[x].body.position.y > vp_height) {
+			console.log(x);
+			removeBall = x;
+		}
+	}	         
 } 
