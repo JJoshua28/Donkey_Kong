@@ -32,14 +32,24 @@ let platform2 = null;
 let platform3 = null;
 let platform4 = null;
 let platform5 = null;
+let platformWin = null;
+let princessPeach = null;
+let bowser = null;
 
 const balls = [];
 const land = [];
 const barrierThickness = 5;
 const notinteractable = 0x0001;
+const test = 0x0002;
 let rightWall = null;
 let removeBall = null;
 let leftWall = null;
+let ladderWin = null;
+let ladder1 = null;
+let ladder2 = null;
+let ladder3 = null;
+let ladder4 = null;
+let ladder5 = null;
 
 //object for the background
 
@@ -205,6 +215,107 @@ class c_special {
 		pop();
 	}
 }
+
+class PrincessPeach {
+	constructor(x, y, diameter, label) {
+		let options = {
+			isStatic: true,
+			restitution: 0,
+			friction: 0.000,
+			density: 0.7,
+			frictionAir: 0.001,
+			label: label,
+			collisionFilter: {
+				category: notinteractable,
+			}
+			
+		}
+		this.body = Matter.Bodies.circle(x, y, diameter/2, options); //matterbody.circle(x, y, Matter.Common.random(10, 20), { friction: 0.00001, restitution: 0.5, density: 0.001 });
+		Matter.World.add(world, this.body);
+		
+		
+		this.x = x;
+		this.y = y;
+		this.diameter = diameter;
+
+	}
+
+	body() {
+		return this.body;
+	}
+
+	show() {
+		fill(255, 255, 0);
+        stroke(0);
+		strokeWeight(2);
+		ellipse(this.x, this.y, this.diameter, this.diameter);
+      
+        // Smile
+		var startAng = .1*PI
+		var endAng = .9*PI
+        var smileDiam = .6*this.diameter;
+        arc(this.x, this.y, smileDiam, smileDiam, startAng, endAng);
+      
+      // Eyes
+        var offset = .2*this.diameter;
+        var eyeDiam = .1*this.diameter;
+        fill(0);
+        ellipse(this.x-offset, this.y-offset, eyeDiam, eyeDiam);
+        ellipse(this.x+offset, this.y-offset, eyeDiam, eyeDiam);
+	}	
+		
+
+}
+
+class Bowser {
+	constructor(x, y, diameter, label) {
+		let options = {
+			isStatic: true,
+			restitution: 0,
+			friction: 0.000,
+			density: 0.7,
+			frictionAir: 0.001,
+			label: label,
+			collisionFilter: {
+				category: notinteractable,
+			}
+			
+		}
+		this.body = Matter.Bodies.circle(x, y, diameter/2, options); //matterbody.circle(x, y, Matter.Common.random(10, 20), { friction: 0.00001, restitution: 0.5, density: 0.001 });
+		Matter.World.add(world, this.body);
+		
+		
+		this.x = x;
+		this.y = y;
+		this.diameter = diameter;
+
+	}
+
+	body() {
+		return this.body;
+	}
+
+	show() {
+		fill(255, 0, 0);
+        stroke(0);
+		strokeWeight(2);
+		ellipse(this.x, this.y, this.diameter, this.diameter);
+      
+        // Smile
+		var startAng = .1*PI
+		var endAng = .9*PI
+        var smileDiam = .6*this.diameter;
+		arc(this.x, this.y + 0.3 * this.diameter, 0.4 * this.diameter, 0.4 * this.diameter, 210, 330);      
+      // Eyes
+        var offset = .2*this.diameter;
+        var eyeDiam = .1*this.diameter;
+        fill(0);
+        ellipse(this.x-offset, this.y-offset, eyeDiam, eyeDiam);
+        ellipse(this.x+offset, this.y-offset, eyeDiam, eyeDiam);
+	}	
+}
+
+
 class c_fuzzball {
 	constructor(x, y, diameter, label) {
 		let options = {
@@ -260,6 +371,42 @@ class c_fuzzball {
 		Matter.World.remove(world, this.body);
 		this.endReached = false;
 	}
+}
+
+class Ladders {
+	constructor(x, y, width, height, label) {
+		let options = {
+			isStatic: true,
+			restitution: 0,
+			friction: 0,
+			density: 0,
+			label,
+			collisionFilter: {
+				mask: test
+			}
+		}
+		//create the body
+		this.body = Matter.Bodies.rectangle(x, y, width, height, options);
+		Matter.World.add(world, this.body); //add to the matter world
+		
+		this.x = x; //store the passed variables in the object
+		this.y = y;
+		this.width = width;
+		this.height = height;
+	}
+
+	body() {
+		return this.body; //return the created body
+	}
+
+	show() {
+		let pos = this.body.position; //create an shortcut alias 
+		rectMode(CENTER); //switch centre to be centre rather than left, top
+		noStroke()
+		fill('#0000ff'); //set the fill colour
+		rect(pos.x, pos.y, this.width, this.height); //draw the rectangle
+	}
+
 }
 
 class Barrier {
@@ -332,7 +479,7 @@ function setup() {
 	Matter.Engine.run(engine);
 	frameRate(60); //specifies the number of (refresh) frames displayed every second
 	ground = new c_special(vp_width / 100 * 52, vp_height - 15, vp_width / 100 * 80, vp_height / 100 * 4, -0.01, "platform1");
-	balls.push(new c_fuzzball(150, 10, 40, "ball1"))
+	balls.push(new c_fuzzball(vp_width /100 * 8, 10, 40, "ball1"))
 	//ball = new c_fuzzball(0, 40, 40);
 	platform1 = new c_special(vp_width / 100 * 47, 170, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform1")	
 	platform2 = new c_special(vp_width / 100 * 52, 340, vp_width / 100 * 78, vp_height / 100 * 2, -0.01, "platform2")
@@ -341,7 +488,21 @@ function setup() {
 	platform5 = new c_special(vp_width / 100 * 47, 790, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform5")
 	rightWall = new Barrier(vp_width / 100 * 97, vp_height / 2, vp_width / 100 * 12, vp_height, "rightwall");
 	leftWall = new Barrier(0, vp_height / 2, vp_width / 100 * 17, vp_height, "leftwall")
+	//bowser = new Bowser(vp_width / 100 * 47, 171, vp_width / 100 * 2.3, "bowser")
+	princessPeach = new PrincessPeach(vp_width/100*40, vp_height / 100 * 6.2, vp_width / 100 * 2.3, "princesspeach")
+	platformWin = new c_special(vp_width/100*43, vp_height / 100 * 9, vp_width / 100 * 8, vp_height / 100 * 1, 0, "platformwin")
+	ladderWin = [new Ladders(vp_width/100*43.3, 125, vp_width/100 * 0.8, vp_height/100*7, "ladder1"), new Ladders(vp_width/100*44.2, 148, vp_width/100 * 2.5, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*44.2, 130, vp_width/100 * 2.5, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*44.2, 112, vp_width/100 * 2.5, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*45.8, 125, vp_width/100 * 0.8, vp_height/100*7, "ladder1")]
+	ladder1 = [new Ladders(vp_width/100* 77, vp_height/100*26, vp_width/100 * 0.8, vp_height/100*14.4, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*31, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*28, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*25, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*22, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*80.3, vp_height/100*26, vp_width/100 * 0.8, vp_height/100*14.4, "ladder1")]
+	ladder2 = [new Ladders(vp_width/100* 20, vp_height/100*42.4, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*46, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*43, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*40, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*37, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*23, vp_height/100*42.4, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1")]
+	ladder3 = [new Ladders(vp_width/100* 77, vp_height/100*57.7, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*60.7, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*57.7, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*54.7, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*52, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*80.3, vp_height/100*57.7, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1")]
+	ladder4 = [new Ladders(vp_width/100* 20, vp_height/100*73, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*76, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*73, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*70, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*67.5, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*23, vp_height/100*73, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1")]
+	ladder5 = [new Ladders(vp_width/100* 77, vp_height/100*89, vp_width/100 * 0.8, vp_height/100*14, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*93, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*90, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*87, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*84, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*80.3, vp_height/100*89, vp_width/100 * 0.8, vp_height/100*14, "ladder1")]
+
+	
+
+
 	Matter.Events.on(engine, 'collisionEnd', collisions)
+
 	
 	
 	/*const row1 = [(new Platform(vp_width / 100 * 3, 170, vp_width / 100 * 50, vp_height / 100 * 2, 0))], (new Platform(vp_width / 100 * 53, 153.75, vp_width / 100 * 35, vp_height / 100 * 2, 0.025))];  
@@ -363,10 +524,10 @@ setInterval(() => {
 	console.log(balls.length)
 	if (removeBall != null) {
 
-		balls[removeBall] = new c_fuzzball(150, 10, 40, "ball" + (removeBall + 1))
+		balls[removeBall] = new c_fuzzball(vp_width /100 * 8, 10, 40, "ball" + (removeBall + 1))
 		removeBall = null;
 	} else {
-		balls.push(new c_fuzzball(150, 10, 40, "ball" + (balls.length + 1)))
+		balls.push(new c_fuzzball(vp_width /100 * 8, 10, 40, "ball" + (balls.length + 1)))
 	}
 }, 3000);
 
@@ -427,6 +588,46 @@ function draw() {
 	platform3.show()
 	platform4.show()
 	platform5.show()
+	platformWin.show()
+	ladderWin[0].show()
+	ladderWin[1].show()
+	ladderWin[2].show()
+	ladderWin[3].show()
+	ladderWin[4].show()
+	ladder1[0].show()
+	ladder1[1].show()
+	ladder1[2].show()
+	ladder1[3].show()
+	ladder1[4].show()
+	ladder1[5].show()
+	ladder2[0].show()
+	ladder2[1].show()
+	ladder2[2].show()
+	ladder2[3].show()
+	ladder2[4].show()
+	ladder2[5].show()
+	ladder3[0].show()
+	ladder3[1].show()
+	ladder3[2].show()
+	ladder3[3].show()
+	ladder3[4].show()
+	ladder3[5].show()
+	ladder4[0].show()
+	ladder4[1].show()
+	ladder4[2].show()
+	ladder4[3].show()
+	ladder4[4].show()
+	ladder4[5].show()
+	ladder5[0].show()
+	ladder5[1].show()
+	ladder5[2].show()
+	ladder5[3].show()
+	ladder5[4].show()
+	ladder5[5].show()
+	princessPeach.show()
+	//bowser.show()
+
+
 
 	//land[0][1].show()
 	//land[1][0].show()
@@ -460,5 +661,5 @@ function draw() {
 			console.log(x);
 			removeBall = x;
 		}
-	}	         
+	}
 } 
