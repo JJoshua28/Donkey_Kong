@@ -491,12 +491,15 @@ function setup() {
 	//bowser = new Bowser(vp_width / 100 * 47, 171, vp_width / 100 * 2.3, "bowser")
 	princessPeach = new PrincessPeach(vp_width/100*40, vp_height / 100 * 6.2, vp_width / 100 * 2.3, "princesspeach")
 	platformWin = new c_special(vp_width/100*43, vp_height / 100 * 9, vp_width / 100 * 8, vp_height / 100 * 1, 0, "platformwin")
-	ladderWin = [new Ladders(vp_width/100*43.3, 125, vp_width/100 * 0.8, vp_height/100*7, "ladder1"), new Ladders(vp_width/100*44.2, 148, vp_width/100 * 2.5, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*44.2, 130, vp_width/100 * 2.5, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*44.2, 112, vp_width/100 * 2.5, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*45.8, 125, vp_width/100 * 0.8, vp_height/100*7, "ladder1")]
-	ladder1 = [new Ladders(vp_width/100* 77, vp_height/100*26, vp_width/100 * 0.8, vp_height/100*14.4, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*31, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*28, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*25, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*22, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*80.3, vp_height/100*26, vp_width/100 * 0.8, vp_height/100*14.4, "ladder1")]
-	ladder2 = [new Ladders(vp_width/100* 20, vp_height/100*42.4, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*46, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*43, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*40, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*37, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*23, vp_height/100*42.4, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1")]
+	ladderWin = [new Ladders(vp_width/100*43.3, 125, vp_width/100 * 0.8, vp_height/100*7, "ladder"), new Ladders(vp_width/100*44.2, 148, vp_width/100 * 2.5, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*44.2, 130, vp_width/100 * 2.5, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*44.2, 112, vp_width/100 * 2.5, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*45.8, 125, vp_width/100 * 0.8, vp_height/100*7, "ladder")]
+	ladder1 = [new Ladders(vp_width/100* 77, vp_height/100*26, vp_width/100 * 0.8, vp_height/100*14.4, "ladder"), new Ladders(vp_width/100*78.8, vp_height/100*31, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*78.8, vp_height/100*28, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*78.8, vp_height/100*25, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*78.8, vp_height/100*22, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*80.3, vp_height/100*26, vp_width/100 * 0.8, vp_height/100*14.4, "ladder")]
+	ladder2 = [new Ladders(vp_width/100* 20, vp_height/100*42.4, vp_width/100 * 0.8, vp_height/100*12.3, "ladder"), new Ladders(vp_width/100*21.8, vp_height/100*46, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*21.8, vp_height/100*43, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*21.8, vp_height/100*40, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*21.8, vp_height/100*37, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*23, vp_height/100*42.4, vp_width/100 * 0.8, vp_height/100*12.3, "ladder")]
 	ladder3 = [new Ladders(vp_width/100* 77, vp_height/100*57.7, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*60.7, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*57.7, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*54.7, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*52, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*80.3, vp_height/100*57.7, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1")]
 	ladder4 = [new Ladders(vp_width/100* 20, vp_height/100*73, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*76, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*73, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*70, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*67.5, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*23, vp_height/100*73, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1")]
 	ladder5 = [new Ladders(vp_width/100* 77, vp_height/100*89, vp_width/100 * 0.8, vp_height/100*14, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*93, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*90, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*87, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*84, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*80.3, vp_height/100*89, vp_width/100 * 0.8, vp_height/100*14, "ladder1")]
+	mario = new c_player(vp_width / 100 * 20, vp_height/100 * 90, 40, 40, "mario");
+	dId = new standstill(80, 137, 40, 40);
+	dk = new standstill( 130, 138, 40, 40);
 
 	
 
@@ -579,6 +582,19 @@ function paint_assets() {
 
 environment.addEnvObj(environment._platforms, land);
 
+function keyPressed() {                            //PUT KEYPRESSES FUCNTION AFTER SETUP FUNCTION, DO NOT PUT WITHIN DRAW FUNCTION
+	if (keyCode === 32 && canjump == true) {
+		mario.space()
+		console.log("jump")
+		canjump = false
+		setTimeout(
+			()=>{
+				canjump = true //Creating a timeout so the block can only jump once ever seconf
+			},1000
+		)
+	}	
+}
+
 function draw() {
 	//a 'p5' defined function that runs automatically and continously (up to your system's hardware/os limit) and based on any specified frame rate
 	environment.paint_background();
@@ -626,6 +642,29 @@ function draw() {
 	ladder5[5].show()
 	princessPeach.show()
 	//bowser.show()
+	mario.show()
+	mario.body.angle = 0;
+	var isPressed = false;
+	if (keyManager[37]){ //left arrow
+		console.log("Left");
+		isPressed = true;
+		mario.left();
+		direction = DIR_LEFT;
+	}    
+	if (keyManager[39]) { //right arrow
+		console.log("Right");
+		isPressed = true;
+		mario.right();
+		direction = DIR_RIGHT;
+	}
+	// if (keyManager[32]) { //space key
+	// 	console.log("space");
+	// 	mario.space();
+	// }
+	if(!isPressed){
+		mario.stop();
+	}
+	
 
 
 
@@ -663,3 +702,6 @@ function draw() {
 		}
 	}
 } 
+var keyManager = {};       //PUT THIS RIGHT AT THE END OF THE CODE- ALLOWS KEYS TO WORK
+window.addEventListener("keydown", (event) => { keyManager[event.keyCode] = true; });
+window.addEventListener("keyup", (event) => { keyManager[event.keyCode] = false; });
