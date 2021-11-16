@@ -22,8 +22,12 @@ class c_player {
 			isStatic: false,
 			restitution: 1,
 			friction: 0.3,
-			density: 0.09
-			
+			density: 0.09,
+			label: label,
+			collisionFilter: {
+				category: 0x0008,
+				mask: 0x0009
+			}
 		}
 		//create the body
 		this.body = Matter.Bodies.rectangle(x, y, width, height, options);
@@ -35,6 +39,8 @@ class c_player {
 		this.height = height;
 		this.jumpheight = 23;
 		this.jumped = false;
+		this.ladderCollision = false;
+		this.options = options;
 	}
 
 	body() {
@@ -48,10 +54,13 @@ class c_player {
 	right(){
 		Matter.Body.setVelocity(this.body, {x: 2.5, y: this.body.velocity.y}); //Sets instructions for when right key is pressed 
 	}
+	up() {
+		Matter.Body.setVelocity(this.body, {x: 0, y: -2}); //Sets instructions for when up key is pressed
+	}
 
 	space(){
 		//Matter.Body.setVelocity(this.body, {x: 0, y: -20}); //Sets instructions for when the space key is pressed
-			Matter.Body.applyForce(this.body, this.body.position, {x: 0, y: -4});
+			Matter.Body.applyForce(this.body, this.body.position, {x: 0, y: -2.5});
 			// this.jumped = true
 			// var jumpy = setTimeout(this.jumped = true ,3000)
 			// clearTimeout(jumpy)
@@ -60,6 +69,15 @@ class c_player {
 	stop(){
 		
 		Matter.Body.setVelocity(this.body, {x: 0, y: this.body.velocity.y}); //Stops the object from moving 
+
+	}
+
+	ladderCollisionStart () {
+		console.log("I")
+		this.options.isSensor = true;
+		this.sensor = Matter.Bodies.rectangle(this.x, this.y, this.width, this.height, this.options);
+		Matter.World.add(world, this.sensor)
+		Matter.World.remove(world, this.body)
 
 	}
 

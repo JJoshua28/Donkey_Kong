@@ -22,7 +22,7 @@
 
 
 
-const vp_width = window.innerWidth, vp_height = window.innerHeight; //defined global const variables to hold the (vp) details (e.g., size, etc.)
+const vp_width = 1000, vp_height = 900; //defined global const variables to hold the (vp) details (e.g., size, etc.)
 var engine, world, body; //defined global variables to hold the game's viewport and the 'matter' engine components
 var viewport;
 let ground = null;
@@ -50,6 +50,7 @@ let ladder2 = null;
 let ladder3 = null;
 let ladder4 = null;
 let ladder5 = null;
+let testPlatform = null;
 
 //object for the background
 
@@ -180,6 +181,18 @@ class c_special {
 		this.y = y;
 		this.width = width;
 		this.height = height;
+		this.removeBody = false;
+		
+		options = {
+			isStatic: true,
+			isSensor: true,
+			label: label,
+			angle: angle,
+			collisionFilter: { mask: notinteractable}
+		}
+
+		this.sensor = Matter.Bodies.rectangle(x,y,width,height,options);
+		Matter.World.add(world, this.sensor)
 	}
 
 	body() {
@@ -188,25 +201,27 @@ class c_special {
 
 	//dont forget bodies are added to the matter world meaning even if not visible the physics engine still manages it
 	remove() {
-		Matter.World.remove(world, this.body);
+		if(this.removeBody) {
+			Matter.World.remove(world, this.body);
+			setTimeout(()=> {
+				this.addBody()
+			}, 700)
+		}	
+	}
+	addBody () {
+		Matter.World.add(world, this.body)
+		this.removeBody = false;
 	}
 
-	rotate() {
-		//Matter.Body.rotate(this.body, Math.PI/20);
-	//	Matter.Body.setAngle(this.body, Math.PI/6);
-    //Matter.Body.rotate(this.body, 5);
-	}
 
 	show() {
-
-		this.rotate();
-
+		Matter.Body.setPosition(this.sensor, this.body.position)
 		let pos = this.body.position; //create an shortcut alias 
 		let angle = this.body.angle;
 
 
 		push(); //p5 translation 
-			stroke("#000000");
+			noStroke();
 			fill('#00ff00');
 			rectMode(CENTER); //switch centre to be centre rather than left, top
 			translate(pos.x, pos.y);
@@ -377,17 +392,18 @@ class Ladders {
 	constructor(x, y, width, height, label) {
 		let options = {
 			isStatic: true,
+			isSensor: true,
 			restitution: 0,
 			friction: 0,
-			density: 0,
+			density: 1,
 			label,
 			collisionFilter: {
-				mask: test
+				category: 0x0008
 			}
 		}
 		//create the body
-		this.body = Matter.Bodies.rectangle(x, y, width, height, options);
-		Matter.World.add(world, this.body); //add to the matter world
+		this.sensor = Matter.Bodies.rectangle(x, y, width, height, options);
+		Matter.World.add(world, this.sensor); //add to the matter world
 		
 		this.x = x; //store the passed variables in the object
 		this.y = y;
@@ -400,7 +416,7 @@ class Ladders {
 	}
 
 	show() {
-		let pos = this.body.position; //create an shortcut alias 
+		let pos = this.sensor.position; //create an shortcut alias 
 		rectMode(CENTER); //switch centre to be centre rather than left, top
 		noStroke()
 		fill('#0000ff'); //set the fill colour
@@ -437,6 +453,7 @@ class Barrier {
 
 	show() {
 		let pos = this.body.position; //create an shortcut alias 
+		noStroke()
 		rectMode(CENTER); //switch centre to be centre rather than left, top
 		fill('#00ff00'); //set the fill colour
 		rect(pos.x, pos.y, this.width, this.height); //draw the rectangle
@@ -478,33 +495,37 @@ function setup() {
 	//is a 'rigid' body that can be simulated by the Matter.Engine; generally defined as rectangles, circles and other polygons)
 	Matter.Engine.run(engine);
 	frameRate(60); //specifies the number of (refresh) frames displayed every second
-	ground = new c_special(vp_width / 100 * 52, vp_height - 15, vp_width / 100 * 80, vp_height / 100 * 4, -0.01, "platform1");
-	balls.push(new c_fuzzball(vp_width /100 * 8, 10, 40, "ball1"))
+	ground = new c_special(538, 885, 745, 45, -0.02, "ground");
+	//balls.push(new c_fuzzball(vp_width /100 * 8, 10, 40, "ball1"))
 	//ball = new c_fuzzball(0, 40, 40);
-	platform1 = new c_special(vp_width / 100 * 47, 170, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform1")	
-	platform2 = new c_special(vp_width / 100 * 52, 340, vp_width / 100 * 78, vp_height / 100 * 2, -0.01, "platform2")
-	platform3 = new c_special(vp_width / 100 * 47, 490, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform3")
-	platform4 = new c_special(vp_width / 100 * 52, 640, vp_width / 100 * 78, vp_height / 100 * 2, -0.01, "platform4")
-	platform5 = new c_special(vp_width / 100 * 47, 790, vp_width / 100 * 78, vp_height / 100 * 2, 0.01, "platform5")
+	platform1 = [new c_special(408, 180, 645, 15, 0.015, "platform1"), new c_special(780, 185.5, 100, 15, 0.015, "platformladderbeam1")]	
+	platform2 = [new c_special(215, 334.5, 100, 15, -0.012, "platformladderbeam2"), new c_special(587, 330, 645, 15, -0.012, "platform2")]
+	platform3 = [new c_special(408, 460, 645, 15, 0.012, "platform3"), new c_special(780, 464.5, 100, 15, 0.012, "platformladderbeam3")]	
+	platform4 = [new c_special(215, 594.5, 100, 15, -0.012, "platformladderbeam4"), new c_special(587, 590, 645, 15, -0.012, "platform4")]
+	platform5 = [new c_special(408, 730, 645, 15, 0.012, "platform5"), new c_special(780, 734.5, 100, 15, 0.012, "platformladderbeam5")]
+	
 	rightWall = new Barrier(vp_width / 100 * 97, vp_height / 2, vp_width / 100 * 12, vp_height, "rightwall");
 	leftWall = new Barrier(0, vp_height / 2, vp_width / 100 * 17, vp_height, "leftwall")
 	//bowser = new Bowser(vp_width / 100 * 47, 171, vp_width / 100 * 2.3, "bowser")
-	princessPeach = new PrincessPeach(vp_width/100*40, vp_height / 100 * 6.2, vp_width / 100 * 2.3, "princesspeach")
-	platformWin = new c_special(vp_width/100*43, vp_height / 100 * 9, vp_width / 100 * 8, vp_height / 100 * 1, 0, "platformwin")
-	ladderWin = [new Ladders(vp_width/100*43.3, 125, vp_width/100 * 0.8, vp_height/100*7, "ladder"), new Ladders(vp_width/100*44.2, 148, vp_width/100 * 2.5, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*44.2, 130, vp_width/100 * 2.5, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*44.2, 112, vp_width/100 * 2.5, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*45.8, 125, vp_width/100 * 0.8, vp_height/100*7, "ladder")]
-	ladder1 = [new Ladders(vp_width/100* 77, vp_height/100*26, vp_width/100 * 0.8, vp_height/100*14.4, "ladder"), new Ladders(vp_width/100*78.8, vp_height/100*31, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*78.8, vp_height/100*28, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*78.8, vp_height/100*25, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*78.8, vp_height/100*22, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*80.3, vp_height/100*26, vp_width/100 * 0.8, vp_height/100*14.4, "ladder")]
-	ladder2 = [new Ladders(vp_width/100* 20, vp_height/100*42.4, vp_width/100 * 0.8, vp_height/100*12.3, "ladder"), new Ladders(vp_width/100*21.8, vp_height/100*46, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*21.8, vp_height/100*43, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*21.8, vp_height/100*40, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*21.8, vp_height/100*37, vp_width/100 * 3, vp_height/100* 1, "ladder"), new Ladders(vp_width/100*23, vp_height/100*42.4, vp_width/100 * 0.8, vp_height/100*12.3, "ladder")]
-	ladder3 = [new Ladders(vp_width/100* 77, vp_height/100*57.7, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*60.7, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*57.7, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*54.7, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*52, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*80.3, vp_height/100*57.7, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1")]
-	ladder4 = [new Ladders(vp_width/100* 20, vp_height/100*73, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*76, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*73, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*70, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*21.8, vp_height/100*67.5, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*23, vp_height/100*73, vp_width/100 * 0.8, vp_height/100*12.3, "ladder1")]
-	ladder5 = [new Ladders(vp_width/100* 77, vp_height/100*89, vp_width/100 * 0.8, vp_height/100*14, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*93, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*90, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*87, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*78.8, vp_height/100*84, vp_width/100 * 3, vp_height/100* 1, "ladder1"), new Ladders(vp_width/100*80.3, vp_height/100*89, vp_width/100 * 0.8, vp_height/100*14, "ladder1")]
-	mario = new c_player(vp_width / 100 * 20, vp_height/100 * 90, 40, 40, "mario");
-	dId = new standstill(80, 137, 40, 40);
+	princessPeach = new PrincessPeach(380, 40, 40, 40, "princesspeach")
+	platformWin = new c_special(415, 75, 115, 25, "platformwin")
+	ladderWin = new Ladders(440, 125, 55, 95, "ladderwin")
+	ladder1 = new Ladders(770, 250, 75, 140, "ladder1")
+	ladder2 = new Ladders(225, 393, 60, 115, "ladder2")
+	ladder3 = new Ladders(770, 523, 60, 115, "ladder3")
+	ladder4 = new Ladders(225, 655, 60, 130, "ladder4")
+	ladder5 = new Ladders(770, 797, 60, 123, "ladder5")
+	//mario = new c_player(vp_width / 100 * 20, vp_height/100 * 90, 40, 40, "mario");
+	mario = new c_player(400, 200, 35, 35, "mario");
+	dId = new standstill(80, 137, 30, 30);
 	dk = new standstill( 130, 138, 40, 40);
 
 	
 
 
 	Matter.Events.on(engine, 'collisionEnd', collisions)
+	Matter.Events.on(engine, 'collisionStart', collisionLadder)
+
 
 	
 	
@@ -522,7 +543,7 @@ function setup() {
 	
 
 }
-
+/*
 setInterval(() => {
 	console.log(balls.length)
 	if (removeBall != null) {
@@ -533,10 +554,103 @@ setInterval(() => {
 		balls.push(new c_fuzzball(vp_width /100 * 8, 10, 40, "ball" + (balls.length + 1)))
 	}
 }, 3000);
+*/
+
+function ladderConfirmation (label) {
+	switch(label) {
+		case "1":
+			platform1[1].removeBody = true;
+			break;
+		case "2":
+			platform2[0].removeBody = true;
+			break;
+		case "3":
+			platform3[1].removeBody = true;
+			break;
+		case "4":
+			platform4[0].removeBody = true;
+			break;
+		case "5":
+			platform5[1].removeBody = true;
+			break;
+		default:
+			platformWin.removeBody = true;	
+	}
+
+}
+
+function removePlatform(labelId) {
+	switch(labelId) {
+		case "1":
+			platform1[1].remove();
+			break;
+		case "2":
+			platform2[0].remove();
+			break;
+		case "3":
+			platform3[1].remove();
+			break;
+		case "4":
+			platform4[0].remove();
+			break;
+		case "5":
+			platform5[1].remove();
+			break;
+		default:
+			platformWin.remove();
+	}
+
+}
+
+function collisionLadder(event) {
+	//runs as part of the matter engine after the engine update, provides access to a list of all pairs that have ended collision in the current frame (if any)
+	event.pairs.forEach((collide) => { //event.pairs[0].bodyA.label
+	
+		if(
+			(collide.bodyA.label === "mario" && collide.bodyB.label.slice(0,6) === "ladder") ||
+			(collide.bodyA.label.slice(0,6) === "ladder" && collide.bodyB.label === "mario")
+		) {
+			if (collide.bodyA.label.slice(0,6) == "ladder") {
+				ladderConfirmation(collide.bodyA.label.slice(6))
+
+			} else {
+				ladderConfirmation(collide.bodyB.label.slice(6)) 
+
+			}
+			mario.ladderCollision = true;				
+		};
+		
+
+		if(
+			(collide.bodyA.label == "mario" && collide.bodyB.label.slice(0, -1) == "platformladderbeam") ||
+			(collide.bodyA.label.slice(0,-1) == "platformladderbeam" && collide.bodyB.label == "mario")
+		) {
+			if (collide.bodyA.label.slice(0,-1) == "platformladderbeam") {
+				removePlatform(collide.bodyA.label.slice(-1))
+				console.log("God")
+			} else {
+				console.log("DAMN")
+				removePlatform(collide.bodyB.label.slice(-1))
+			}
+			//setTimeout(platform1[1].addBody, 100)
+		};
+
+
+		if(
+			(collide.bodyA.label == "mario" && collide.bodyB.label.slice(0, 4) == "ball") ||
+			(collide.bodyA.label.slice(0, 4) == "ball" && collide.bodyB.label == "mario")
+		) {
+			console.log("Game over"); 
+					
+		};	
+	});
+}
 
 function collisions(event) {
 	//runs as part of the matter engine after the engine update, provides access to a list of all pairs that have ended collision in the current frame (if any)
 	event.pairs.forEach((collide) => { //event.pairs[0].bodyA.label
+		console.log(collide.bodyA.label)
+		console.log(collide.bodyB.label)
 
 		// if(
 
@@ -545,6 +659,7 @@ function collisions(event) {
 
 
 		// }
+
 
 		if(
 			(collide.bodyA.label.slice(0, 4) == "ball" && collide.bodyB.label == "rightwall") ||
@@ -567,8 +682,26 @@ function collisions(event) {
 			} else {
 				balls[parseInt(collide.bodyB.label.slice(4)) - 1].collisionLeftWall()
 			}
-
 		}
+
+
+		if(
+			(collide.bodyA.label == "mario" && collide.bodyB.label.slice(0,6) == "ladder") ||
+			(collide.bodyA.label.slice(0,6) == "ladder" && collide.bodyB.label == "mario")
+		) {
+			mario.ladderCollision = false;
+
+	
+		}
+
+		if(
+			(collide.bodyA.label == "mario" && collide.bodyB.slice(0, -1) == "platformladderbeam") ||
+			(collide.bodyA.label.slice(0, -1) == "platformladderbeam" && collide.bodyB.label == "mario") && platform1.removeBody === true
+		) {
+			
+		}
+
+				
 
 
 
@@ -599,47 +732,24 @@ function draw() {
 	//a 'p5' defined function that runs automatically and continously (up to your system's hardware/os limit) and based on any specified frame rate
 	environment.paint_background();
 	ground.show();
-	platform1.show()
-	platform2.show()
-	platform3.show()
-	platform4.show()
-	platform5.show()
+	platform1[0].show()
+	platform1[1].show()
+	platform2[0].show()
+	platform2[1].show()
+	platform3[0].show()
+	platform3[1].show()
+	platform4[0].show()
+	platform4[1].show()
+	platform5[0].show()
+	platform5[1].show()
 	platformWin.show()
-	ladderWin[0].show()
-	ladderWin[1].show()
-	ladderWin[2].show()
-	ladderWin[3].show()
-	ladderWin[4].show()
-	ladder1[0].show()
-	ladder1[1].show()
-	ladder1[2].show()
-	ladder1[3].show()
-	ladder1[4].show()
-	ladder1[5].show()
-	ladder2[0].show()
-	ladder2[1].show()
-	ladder2[2].show()
-	ladder2[3].show()
-	ladder2[4].show()
-	ladder2[5].show()
-	ladder3[0].show()
-	ladder3[1].show()
-	ladder3[2].show()
-	ladder3[3].show()
-	ladder3[4].show()
-	ladder3[5].show()
-	ladder4[0].show()
-	ladder4[1].show()
-	ladder4[2].show()
-	ladder4[3].show()
-	ladder4[4].show()
-	ladder4[5].show()
-	ladder5[0].show()
-	ladder5[1].show()
-	ladder5[2].show()
-	ladder5[3].show()
-	ladder5[4].show()
-	ladder5[5].show()
+	ladderWin.show()
+	ladder1.show()
+	ladder2.show()
+	ladder3.show()
+	ladder4.show()
+	ladder5.show()
+
 	princessPeach.show()
 	//bowser.show()
 	mario.show()
@@ -657,6 +767,16 @@ function draw() {
 		mario.right();
 		direction = DIR_RIGHT;
 	}
+
+	if (mario.ladderCollision) {
+		if (keyManager[38]) {
+			console.log("up");
+			isPressed = true;
+			mario.up();
+
+			direction = DIR_NONE;
+		}	
+	}	
 	// if (keyManager[32]) { //space key
 	// 	console.log("space");
 	// 	mario.space();
@@ -664,9 +784,6 @@ function draw() {
 	if(!isPressed){
 		mario.stop();
 	}
-	
-
-
 
 	//land[0][1].show()
 	//land[1][0].show()
@@ -694,13 +811,15 @@ function draw() {
 	*/
 	rightWall.show()
 	leftWall.show()
-	for(let x = 0; x < balls.length; x++) {
+	/*for(let x = 0; x < balls.length; x++) {
 		balls[x].show();
 		if (balls[x].body.position.y > vp_height) {
 			console.log(x);
 			removeBall = x;
 		}
 	}
+	*/
+	
 } 
 var keyManager = {};       //PUT THIS RIGHT AT THE END OF THE CODE- ALLOWS KEYS TO WORK
 window.addEventListener("keydown", (event) => { keyManager[event.keyCode] = true; });
