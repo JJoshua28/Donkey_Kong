@@ -36,7 +36,7 @@ let platformWin = null;
 let princessPeach = null;
 let bowser = null;
 
-const balls = [];
+let balls = [];
 const land = [];
 const barrierThickness = 5;
 const notinteractable = 0x0001;
@@ -51,7 +51,9 @@ let ladder3 = null;
 let ladder4 = null;
 let ladder5 = null;
 let testPlatform = null;
-
+let isMenuActive = true;
+let gameRunning = false;
+let death = false; 
 //object for the background
 
 const environment = {
@@ -203,9 +205,11 @@ class c_special {
 	remove() {
 		if(this.removeBody) {
 			Matter.World.remove(world, this.body);
+			Matter.Body.applyForce(mario.body, mario.body.position, {x: 0, y:3})
+
 			setTimeout(()=> {
 				this.addBody()
-			}, 700)
+			}, 400)
 		}	
 	}
 	addBody () {
@@ -482,6 +486,16 @@ function preload() {
 	//the 'setup' function is called (automatically)
 }
 
+function removeAllBalls(arr){
+	//foreach
+	//remove from matter
+	// clear the array
+	arr.forEach(element => {
+		element.remove();
+	})
+	balls = [];
+}
+
 
 function setup() {
 	//a 'p5' defined function runs automatically once the preload function is complete
@@ -493,10 +507,9 @@ function setup() {
 	world = engine.world; //the instance of the world (contains all bodies, constraints, etc) to be simulated by the engine
 	body = Matter.Body; //the module that contains all 'matter' methods for creating and manipulating 'body' models a 'matter' body 
 	//is a 'rigid' body that can be simulated by the Matter.Engine; generally defined as rectangles, circles and other polygons)
-	Matter.Engine.run(engine);
+	// Matter.Engine.run(engine);
 	frameRate(60); //specifies the number of (refresh) frames displayed every second
 	ground = new c_special(538, 885, 745, 45, -0.02, "ground");
-	//balls.push(new c_fuzzball(vp_width /100 * 8, 10, 40, "ball1"))
 	//ball = new c_fuzzball(0, 40, 40);
 	platform1 = [new c_special(408, 180, 645, 15, 0.015, "platform1"), new c_special(780, 185.5, 100, 15, 0.015, "platformladderbeam1")]	
 	platform2 = [new c_special(215, 334.5, 100, 15, -0.012, "platformladderbeam2"), new c_special(587, 330, 645, 15, -0.012, "platform2")]
@@ -508,16 +521,15 @@ function setup() {
 	leftWall = new Barrier(0, vp_height / 2, vp_width / 100 * 17, vp_height, "leftwall")
 	//bowser = new Bowser(vp_width / 100 * 47, 171, vp_width / 100 * 2.3, "bowser")
 	princessPeach = new PrincessPeach(380, 40, 40, 40, "princesspeach")
-	platformWin = new c_special(415, 75, 115, 25, "platformwin")
-	ladderWin = new Ladders(440, 125, 55, 95, "ladderwin")
-	ladder1 = new Ladders(770, 250, 75, 140, "ladder1")
+	platformWin = new c_special(415, 75, 115, 18, 0, "platformladderbeamwin")
+	ladderWin = new Ladders(440, 123, 55, 100, "ladderwin")
+	ladder1 = new Ladders(770, 253, 75, 135, "ladder1")
 	ladder2 = new Ladders(225, 393, 60, 115, "ladder2")
 	ladder3 = new Ladders(770, 523, 60, 115, "ladder3")
-	ladder4 = new Ladders(225, 655, 60, 130, "ladder4")
+	ladder4 = new Ladders(225, 657, 60, 125, "ladder4")
 	ladder5 = new Ladders(770, 797, 60, 123, "ladder5")
 	//mario = new c_player(vp_width / 100 * 20, vp_height/100 * 90, 40, 40, "mario");
-	mario = new c_player(400, 200, 35, 35, "mario");
-	dId = new standstill(80, 137, 30, 30);
+	mario = new c_player(340, 835, 33, 33, "mario");
 	dk = new standstill( 130, 138, 40, 40);
 
 	
@@ -543,20 +555,20 @@ function setup() {
 	
 
 }
-/*
-setInterval(() => {
-	console.log(balls.length)
-	if (removeBall != null) {
 
-		balls[removeBall] = new c_fuzzball(vp_width /100 * 8, 10, 40, "ball" + (removeBall + 1))
-		removeBall = null;
-	} else {
-		balls.push(new c_fuzzball(vp_width /100 * 8, 10, 40, "ball" + (balls.length + 1)))
-	}
-}, 3000);
-*/
+setInterval(() => {
+	if(!isMenuActive) {
+		console.log(balls.length)
+		if (removeBall != null) {
+			balls[removeBall] = new c_fuzzball(50, 10, 30, "ball" + (removeBall + 1))
+			removeBall = null;
+			console.log("Removed")
+		} else {
+			balls.push(new c_fuzzball(90, 10, 38, "ball" + (balls.length + 1)))}
+}}, 3000);
 
 function ladderConfirmation (label) {
+	console.log(label);
 	switch(label) {
 		case "1":
 			platform1[1].removeBody = true;
@@ -580,6 +592,7 @@ function ladderConfirmation (label) {
 }
 
 function removePlatform(labelId) {
+	console.log("paper")
 	switch(labelId) {
 		case "1":
 			platform1[1].remove();
@@ -605,15 +618,19 @@ function removePlatform(labelId) {
 function collisionLadder(event) {
 	//runs as part of the matter engine after the engine update, provides access to a list of all pairs that have ended collision in the current frame (if any)
 	event.pairs.forEach((collide) => { //event.pairs[0].bodyA.label
+		console.log(collide.bodyA.label)
+		console.log(collide.bodyB.label)
 	
 		if(
 			(collide.bodyA.label === "mario" && collide.bodyB.label.slice(0,6) === "ladder") ||
 			(collide.bodyA.label.slice(0,6) === "ladder" && collide.bodyB.label === "mario")
 		) {
+			console.log("funny")
 			if (collide.bodyA.label.slice(0,6) == "ladder") {
 				ladderConfirmation(collide.bodyA.label.slice(6))
 
 			} else {
+
 				ladderConfirmation(collide.bodyB.label.slice(6)) 
 
 			}
@@ -622,15 +639,16 @@ function collisionLadder(event) {
 		
 
 		if(
-			(collide.bodyA.label == "mario" && collide.bodyB.label.slice(0, -1) == "platformladderbeam") ||
-			(collide.bodyA.label.slice(0,-1) == "platformladderbeam" && collide.bodyB.label == "mario")
+			(collide.bodyA.label == "mario" && collide.bodyB.label.slice(0, 18) == "platformladderbeam") ||
+			(collide.bodyA.label.slice(0,18) == "platformladderbeam" && collide.bodyB.label == "mario")
 		) {
-			if (collide.bodyA.label.slice(0,-1) == "platformladderbeam") {
-				removePlatform(collide.bodyA.label.slice(-1))
+			console.log("hey")
+			if (collide.bodyA.label.slice(0,18) == "platformladderbeam") {
+				removePlatform(collide.bodyA.label.slice(18))
 				console.log("God")
 			} else {
 				console.log("DAMN")
-				removePlatform(collide.bodyB.label.slice(-1))
+				removePlatform(collide.bodyB.label.slice(18))
 			}
 			//setTimeout(platform1[1].addBody, 100)
 		};
@@ -640,17 +658,38 @@ function collisionLadder(event) {
 			(collide.bodyA.label == "mario" && collide.bodyB.label.slice(0, 4) == "ball") ||
 			(collide.bodyA.label.slice(0, 4) == "ball" && collide.bodyB.label == "mario")
 		) {
-			console.log("Game over"); 
+			death = true;
+			isMenuActive = true;
+			if (death) {
+				let start = document.getElementById("start")
+				let menu = document.getElementById("menu")
+				let loseText = document.getElementById("losetext")
+				start.innerHTML = "Restart"
+				loseText.style.display = "block"
+				menu.style.display = "block" 
+			} 
 					
-		};	
+		};
+
+		if(
+			(collide.bodyA.label == "mario" && collide.bodyB.label == "princesspeach") ||
+			(collide.bodyA.label == "princesspeach" && collide.bodyB.label == "mario")
+		) {
+			isMenuActive = true;
+			let start = document.getElementById("start")
+			let menu = document.getElementById("menu")
+			let winText = document.getElementById("wintext")
+			start.innerHTML = "Restart"
+			winText.style.display = "block"
+			menu.style.display = "block" 
+		}	 
 	});
 }
 
 function collisions(event) {
 	//runs as part of the matter engine after the engine update, provides access to a list of all pairs that have ended collision in the current frame (if any)
 	event.pairs.forEach((collide) => { //event.pairs[0].bodyA.label
-		console.log(collide.bodyA.label)
-		console.log(collide.bodyB.label)
+	
 
 		// if(
 
@@ -695,8 +734,8 @@ function collisions(event) {
 		}
 
 		if(
-			(collide.bodyA.label == "mario" && collide.bodyB.slice(0, -1) == "platformladderbeam") ||
-			(collide.bodyA.label.slice(0, -1) == "platformladderbeam" && collide.bodyB.label == "mario") && platform1.removeBody === true
+			(collide.bodyA.label == "mario" && collide.bodyB.label.slice(0, 18) == "platformladderbeam") ||
+			(collide.bodyA.label.slice(0, 18) == "platformladderbeam" && collide.bodyB.label == "mario") && platform1.removeBody === true
 		) {
 			
 		}
@@ -708,6 +747,8 @@ function collisions(event) {
 
 	});
 }
+
+
 
 function paint_assets() {
 	//a defined function to 'paint' assets to the canvas
@@ -723,10 +764,25 @@ function keyPressed() {                            //PUT KEYPRESSES FUCNTION AFT
 		setTimeout(
 			()=>{
 				canjump = true //Creating a timeout so the block can only jump once ever seconf
-			},1000
+			},2000
 		)
 	}	
 }
+
+
+function start () {
+	balls.push(new c_fuzzball(50, 10, 30, "ball1"))
+	isMenuActive = false;
+	setup();
+	// balls.length = 0;
+	removeAllBalls(balls);
+	balls = [];
+	Matter.World.add(world, mario.body)
+	const menu = document.getElementById("menu")
+	menu.style.display = "none";
+
+}
+
 
 function draw() {
 	//a 'p5' defined function that runs automatically and continously (up to your system's hardware/os limit) and based on any specified frame rate
@@ -752,8 +808,11 @@ function draw() {
 
 	princessPeach.show()
 	//bowser.show()
-	mario.show()
-	mario.body.angle = 0;
+	if (!isMenuActive) {
+		mario.show()
+	}
+	dk.show()
+	//mario.body.angle = 0;
 	var isPressed = false;
 	if (keyManager[37]){ //left arrow
 		console.log("Left");
@@ -773,7 +832,6 @@ function draw() {
 			console.log("up");
 			isPressed = true;
 			mario.up();
-
 			direction = DIR_NONE;
 		}	
 	}	
@@ -784,7 +842,7 @@ function draw() {
 	if(!isPressed){
 		mario.stop();
 	}
-
+	// Matter.Engine.run(engine);
 	//land[0][1].show()
 	//land[1][0].show()
 	//land[0][0].show()
@@ -811,15 +869,22 @@ function draw() {
 	*/
 	rightWall.show()
 	leftWall.show()
-	/*for(let x = 0; x < balls.length; x++) {
-		balls[x].show();
-		if (balls[x].body.position.y > vp_height) {
-			console.log(x);
-			removeBall = x;
+	if(!isMenuActive) {
+		for(let x = 0; x < balls.length; x++) {
+			balls[x].show();
+			if (balls[x].body.position.y > vp_height) {
+				console.log(x);
+				removeBall = x;
+			}
 		}
+
+	}	
+
+	if(!isMenuActive){
+		Matter.Engine.update(engine);
+	}else{
+
 	}
-	*/
-	
 } 
 var keyManager = {};       //PUT THIS RIGHT AT THE END OF THE CODE- ALLOWS KEYS TO WORK
 window.addEventListener("keydown", (event) => { keyManager[event.keyCode] = true; });
