@@ -31,7 +31,7 @@ class c_player {
 		}
 		//create the body
 		this.body = Matter.Bodies.rectangle(x, y, width, height, options);
-		Matter.World.add(world, this.body); //add to the matter world
+		 //add to the matter world
 		
 		this.x = x; //store the passed variables in the object
 		this.y = y;
@@ -48,11 +48,11 @@ class c_player {
 	}
 
 	left() {
-		Matter.Body.setVelocity(this.body, {x: -2.5, y: this.body.velocity.y}); //Sets instructions for when left key is pressed
+		Matter.Body.setVelocity(this.body, {x: -2.8, y: this.body.velocity.y}); //Sets instructions for when left key is pressed
 	}
 
 	right(){
-		Matter.Body.setVelocity(this.body, {x: 2.5, y: this.body.velocity.y}); //Sets instructions for when right key is pressed 
+		Matter.Body.setVelocity(this.body, {x: 2.8, y: this.body.velocity.y}); //Sets instructions for when right key is pressed 
 	}
 	up() {
 		Matter.Body.setVelocity(this.body, {x: 0, y: -2}); //Sets instructions for when up key is pressed
@@ -60,7 +60,7 @@ class c_player {
 
 	space(){
 		//Matter.Body.setVelocity(this.body, {x: 0, y: -20}); //Sets instructions for when the space key is pressed
-			Matter.Body.applyForce(this.body, this.body.position, {x: 0, y: -2.5});
+			Matter.Body.applyForce(this.body, this.body.position, {x: 0, y: -1.8});
 			// this.jumped = true
 			// var jumpy = setTimeout(this.jumped = true ,3000)
 			// clearTimeout(jumpy)

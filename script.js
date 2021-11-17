@@ -520,7 +520,7 @@ function setup() {
 	rightWall = new Barrier(vp_width / 100 * 97, vp_height / 2, vp_width / 100 * 12, vp_height, "rightwall");
 	leftWall = new Barrier(0, vp_height / 2, vp_width / 100 * 17, vp_height, "leftwall")
 	//bowser = new Bowser(vp_width / 100 * 47, 171, vp_width / 100 * 2.3, "bowser")
-	princessPeach = new PrincessPeach(380, 40, 40, 40, "princesspeach")
+	princessPeach = new PrincessPeach(380, 40, 40, "princesspeach")
 	platformWin = new c_special(415, 75, 115, 18, 0, "platformladderbeamwin")
 	ladderWin = new Ladders(440, 123, 55, 100, "ladderwin")
 	ladder1 = new Ladders(770, 253, 75, 135, "ladder1")
@@ -529,7 +529,7 @@ function setup() {
 	ladder4 = new Ladders(225, 657, 60, 125, "ladder4")
 	ladder5 = new Ladders(770, 797, 60, 123, "ladder5")
 	//mario = new c_player(vp_width / 100 * 20, vp_height/100 * 90, 40, 40, "mario");
-	mario = new c_player(340, 835, 33, 33, "mario");
+	mario = new c_player(340, 100, 30, 30, "mario");
 	dk = new standstill( 130, 138, 40, 40);
 
 	
@@ -560,11 +560,11 @@ setInterval(() => {
 	if(!isMenuActive) {
 		console.log(balls.length)
 		if (removeBall != null) {
-			balls[removeBall] = new c_fuzzball(50, 10, 30, "ball" + (removeBall + 1))
+			balls[removeBall] = new c_fuzzball(50, 10, 33, "ball" + (removeBall + 1))
 			removeBall = null;
 			console.log("Removed")
 		} else {
-			balls.push(new c_fuzzball(90, 10, 38, "ball" + (balls.length + 1)))}
+			balls.push(new c_fuzzball(90, 10, 33, "ball" + (balls.length + 1)))}
 }}, 3000);
 
 function ladderConfirmation (label) {
@@ -615,11 +615,35 @@ function removePlatform(labelId) {
 
 }
 
+function gameDeath () {
+	isMenuActive = true;
+	let start = document.getElementById("start")
+	let menu = document.getElementById("menu")
+	let loseText = document.getElementById("losetext")
+	start.innerHTML = "Restart"
+	loseText.style.display = "block"
+	menu.style.display = "block" 		
+}
+
 function collisionLadder(event) {
 	//runs as part of the matter engine after the engine update, provides access to a list of all pairs that have ended collision in the current frame (if any)
 	event.pairs.forEach((collide) => { //event.pairs[0].bodyA.label
 		console.log(collide.bodyA.label)
 		console.log(collide.bodyB.label)
+
+		if(
+			(collide.bodyA.label == "mario" && collide.bodyB.label == "princesspeach") ||
+			(collide.bodyA.label == "princesspeach" && collide.bodyB.label == "mario")
+		) {
+			isMenuActive = true;
+			let start = document.getElementById("start")
+			let menu = document.getElementById("menu")
+			let winText = document.getElementById("wintext")
+			start.innerHTML = "Restart"
+			menu.style.display = "block"
+			winText.style.display = "block"
+ 
+		}	 
 	
 		if(
 			(collide.bodyA.label === "mario" && collide.bodyB.label.slice(0,6) === "ladder") ||
@@ -658,31 +682,8 @@ function collisionLadder(event) {
 			(collide.bodyA.label == "mario" && collide.bodyB.label.slice(0, 4) == "ball") ||
 			(collide.bodyA.label.slice(0, 4) == "ball" && collide.bodyB.label == "mario")
 		) {
-			death = true;
-			isMenuActive = true;
-			if (death) {
-				let start = document.getElementById("start")
-				let menu = document.getElementById("menu")
-				let loseText = document.getElementById("losetext")
-				start.innerHTML = "Restart"
-				loseText.style.display = "block"
-				menu.style.display = "block" 
-			} 
-					
+			gameDeath();					
 		};
-
-		if(
-			(collide.bodyA.label == "mario" && collide.bodyB.label == "princesspeach") ||
-			(collide.bodyA.label == "princesspeach" && collide.bodyB.label == "mario")
-		) {
-			isMenuActive = true;
-			let start = document.getElementById("start")
-			let menu = document.getElementById("menu")
-			let winText = document.getElementById("wintext")
-			start.innerHTML = "Restart"
-			winText.style.display = "block"
-			menu.style.display = "block" 
-		}	 
 	});
 }
 
@@ -764,7 +765,7 @@ function keyPressed() {                            //PUT KEYPRESSES FUCNTION AFT
 		setTimeout(
 			()=>{
 				canjump = true //Creating a timeout so the block can only jump once ever seconf
-			},2000
+			},1000
 		)
 	}	
 }
@@ -879,6 +880,10 @@ function draw() {
 		}
 
 	}	
+	if (mario.body.position.y > vp_height) {
+		gameDeath();
+	}
+
 
 	if(!isMenuActive){
 		Matter.Engine.update(engine);
