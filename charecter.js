@@ -41,6 +41,8 @@ class c_player {
 		this.jumped = false;
 		this.ladderCollision = false;
 		this.options = options;
+		this.colour = '#ff0000';
+		this.gameStarted = false;
 	}
 
 	body() {
@@ -50,20 +52,18 @@ class c_player {
 	left() {
 		Matter.Body.setVelocity(this.body, {x: -2.8, y: this.body.velocity.y}); //Sets instructions for when left key is pressed
 	}
-
+    //mario's
 	right(){
 		Matter.Body.setVelocity(this.body, {x: 2.8, y: this.body.velocity.y}); //Sets instructions for when right key is pressed 
 	}
+	//Mario's functionality when climbing up the ladder
 	up() {
 		Matter.Body.setVelocity(this.body, {x: 0, y: -2}); //Sets instructions for when up key is pressed
 	}
-
+    //Mario's jump functionality
 	space(){
 		//Matter.Body.setVelocity(this.body, {x: 0, y: -20}); //Sets instructions for when the space key is pressed
 			Matter.Body.applyForce(this.body, this.body.position, {x: 0, y: -1.8});
-			// this.jumped = true
-			// var jumpy = setTimeout(this.jumped = true ,3000)
-			// clearTimeout(jumpy)
 	}
 
 	stop(){
@@ -73,29 +73,36 @@ class c_player {
 	}
 
 	ladderCollisionStart () {
-		console.log("I")
 		this.options.isSensor = true;
 		this.sensor = Matter.Bodies.rectangle(this.x, this.y, this.width, this.height, this.options);
 		Matter.World.add(world, this.sensor)
 		Matter.World.remove(world, this.body)
 
 	}
+    //checks if mario fell of the map!
+	offMap () {
+		if (this.body.position.y > vp_height) {
+		gameDeath();
+	}
 
+	}
+    //displays the protagonist (mario's) body when true. done at a set time
 	show() {
+		if(this.gameStarted === true) {
 		//this.rotate();
-
 		let pos = this.body.position; //create an shortcut alias 
 		let angle = this.body.angle;
 
 
 		push(); //p5 translation 
 			stroke("#000000");
-			fill('#ff0400');
+			fill(this.colour);
 			rectMode(CENTER); //switch centre to be centre rather than left, top
 			translate(pos.x, pos.y);
 			rotate(angle);
 			rect(0, 0, this.width, this.height);
 		pop();
+		}
 	}
 }
 
@@ -125,12 +132,13 @@ class c_player {
 
 
 class standstill {
-	constructor(x, y, width, height, label) { //Sets the object qualities
+	constructor(x, y, width, height) { //Sets the object qualities
 		let options = {
 			restitution: 1,
 			friction: 0.3,
 			density: 0.09,
 			isStatic: true,
+			label: "villain",
 			
 		}
 		//create the body

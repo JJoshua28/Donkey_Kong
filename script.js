@@ -35,6 +35,8 @@ let platform5 = null;
 let platformWin = null;
 let princessPeach = null;
 let bowser = null;
+let score = 0;
+let mColour = "#ff0000";
 
 let balls = [];
 const land = [];
@@ -413,10 +415,17 @@ class Ladders {
 		this.y = y;
 		this.width = width;
 		this.height = height;
+		this.addedToScore = false;
 	}
 
 	body() {
 		return this.body; //return the created body
+	}
+	increaseScore () {
+		if(this.addedToScore === false) {
+			score += 200;
+			this.addedToScore = true;
+		}
 	}
 
 	show() {
@@ -529,7 +538,7 @@ function setup() {
 	ladder4 = new Ladders(225, 657, 60, 125, "ladder4")
 	ladder5 = new Ladders(770, 797, 60, 123, "ladder5")
 	//mario = new c_player(vp_width / 100 * 20, vp_height/100 * 90, 40, 40, "mario");
-	mario = new c_player(340, 100, 30, 30, "mario");
+	mario = new c_player(340, 835, 30, 30, "mario");
 	dk = new standstill( 130, 138, 40, 40);
 
 	
@@ -558,17 +567,14 @@ function setup() {
 
 setInterval(() => {
 	if(!isMenuActive) {
-		console.log(balls.length)
 		if (removeBall != null) {
 			balls[removeBall] = new c_fuzzball(50, 10, 33, "ball" + (removeBall + 1))
 			removeBall = null;
-			console.log("Removed")
 		} else {
 			balls.push(new c_fuzzball(90, 10, 33, "ball" + (balls.length + 1)))}
 }}, 3000);
 
 function ladderConfirmation (label) {
-	console.log(label);
 	switch(label) {
 		case "1":
 			platform1[1].removeBody = true;
@@ -592,24 +598,29 @@ function ladderConfirmation (label) {
 }
 
 function removePlatform(labelId) {
-	console.log("paper")
 	switch(labelId) {
 		case "1":
 			platform1[1].remove();
+			ladder1.increaseScore()
 			break;
 		case "2":
+			ladder2.increaseScore()
 			platform2[0].remove();
 			break;
 		case "3":
+			ladder3.increaseScore()
 			platform3[1].remove();
 			break;
 		case "4":
+			ladder4.increaseScore()
 			platform4[0].remove();
 			break;
 		case "5":
+			ladder5.increaseScore()
 			platform5[1].remove();
 			break;
 		default:
+			ladderWin.increaseScore()
 			platformWin.remove();
 	}
 
@@ -617,10 +628,13 @@ function removePlatform(labelId) {
 
 function gameDeath () {
 	isMenuActive = true;
-	let start = document.getElementById("start")
+	let startMenu = document.getElementById("start")
 	let menu = document.getElementById("menu")
 	let loseText = document.getElementById("losetext")
-	start.innerHTML = "Restart"
+	const scoreToDisplay = document.getElementById("score");
+	scoreToDisplay.innerHTML = "Score: " + score;
+	scoreToDisplay.style.display = "block";	
+	startMenu.innerHTML = "Restart"
 	loseText.style.display = "block"
 	menu.style.display = "block" 		
 }
@@ -628,20 +642,22 @@ function gameDeath () {
 function collisionLadder(event) {
 	//runs as part of the matter engine after the engine update, provides access to a list of all pairs that have ended collision in the current frame (if any)
 	event.pairs.forEach((collide) => { //event.pairs[0].bodyA.label
-		console.log(collide.bodyA.label)
-		console.log(collide.bodyB.label)
 
 		if(
 			(collide.bodyA.label == "mario" && collide.bodyB.label == "princesspeach") ||
 			(collide.bodyA.label == "princesspeach" && collide.bodyB.label == "mario")
 		) {
+			score += 800;
 			isMenuActive = true;
-			let start = document.getElementById("start")
-			let menu = document.getElementById("menu")
-			let winText = document.getElementById("wintext")
-			start.innerHTML = "Restart"
-			menu.style.display = "block"
-			winText.style.display = "block"
+			let start = document.getElementById("start");
+			let menu = document.getElementById("menu");
+			let winText = document.getElementById("wintext");
+			const scoreToDisplay = document.getElementById("score");
+			scoreToDisplay.innerHTML = "Score: " + score;
+			scoreToDisplay.style.display = "block";		
+			start.innerHTML = "Restart";
+			menu.style.display = "block";
+			winText.style.display = "block";
  
 		}	 
 	
@@ -649,8 +665,8 @@ function collisionLadder(event) {
 			(collide.bodyA.label === "mario" && collide.bodyB.label.slice(0,6) === "ladder") ||
 			(collide.bodyA.label.slice(0,6) === "ladder" && collide.bodyB.label === "mario")
 		) {
-			console.log("funny")
 			if (collide.bodyA.label.slice(0,6) == "ladder") {
+
 				ladderConfirmation(collide.bodyA.label.slice(6))
 
 			} else {
@@ -666,12 +682,9 @@ function collisionLadder(event) {
 			(collide.bodyA.label == "mario" && collide.bodyB.label.slice(0, 18) == "platformladderbeam") ||
 			(collide.bodyA.label.slice(0,18) == "platformladderbeam" && collide.bodyB.label == "mario")
 		) {
-			console.log("hey")
 			if (collide.bodyA.label.slice(0,18) == "platformladderbeam") {
 				removePlatform(collide.bodyA.label.slice(18))
-				console.log("God")
 			} else {
-				console.log("DAMN")
 				removePlatform(collide.bodyB.label.slice(18))
 			}
 			//setTimeout(platform1[1].addBody, 100)
@@ -681,6 +694,12 @@ function collisionLadder(event) {
 		if(
 			(collide.bodyA.label == "mario" && collide.bodyB.label.slice(0, 4) == "ball") ||
 			(collide.bodyA.label.slice(0, 4) == "ball" && collide.bodyB.label == "mario")
+		) {
+			gameDeath();					
+		};
+		if(
+			(collide.bodyA.label == "mario" && collide.bodyB.label == "villain") ||
+			(collide.bodyA.label == "villain" && collide.bodyB.label == "mario")
 		) {
 			gameDeath();					
 		};
@@ -749,10 +768,25 @@ function collisions(event) {
 	});
 }
 
-
+function marioColour (e) {
+	switch(e.target.id) {
+		case "black":
+			mColour = "#000000";
+			break;
+		case "white":
+			mColour = "#ffffff";
+			break;
+		case "red":
+			mColour = "ff0000"	
+	}
+}
 
 function paint_assets() {
 	//a defined function to 'paint' assets to the canvas
+	textSize(30);
+	fill('#ff0000')
+	text("Score: " + score, 700, 25)//INCLUDE WITHIN THE PAINT ASSESTS FUNCTION 
+
 }
 
 environment.addEnvObj(environment._platforms, land);
@@ -760,7 +794,6 @@ environment.addEnvObj(environment._platforms, land);
 function keyPressed() {                            //PUT KEYPRESSES FUCNTION AFTER SETUP FUNCTION, DO NOT PUT WITHIN DRAW FUNCTION
 	if (keyCode === 32 && canjump == true) {
 		mario.space()
-		console.log("jump")
 		canjump = false
 		setTimeout(
 			()=>{
@@ -775,12 +808,21 @@ function start () {
 	balls.push(new c_fuzzball(50, 10, 30, "ball1"))
 	isMenuActive = false;
 	setup();
+	mario.colour = mColour;
 	// balls.length = 0;
 	removeAllBalls(balls);
 	balls = [];
-	Matter.World.add(world, mario.body)
+	setTimeout(() => {
+		mario.gameStarted = true;
+		Matter.World.add(world, mario.body)
+
+
+	}, 11000)
 	const menu = document.getElementById("menu")
 	menu.style.display = "none";
+	const gameHeading = document.getElementById("gameHeading");
+	gameHeading.style.display = "none";
+	score = 0
 
 }
 
@@ -788,6 +830,7 @@ function start () {
 function draw() {
 	//a 'p5' defined function that runs automatically and continously (up to your system's hardware/os limit) and based on any specified frame rate
 	environment.paint_background();
+	paint_assets();
 	ground.show();
 	platform1[0].show()
 	platform1[1].show()
@@ -816,13 +859,11 @@ function draw() {
 	//mario.body.angle = 0;
 	var isPressed = false;
 	if (keyManager[37]){ //left arrow
-		console.log("Left");
 		isPressed = true;
 		mario.left();
 		direction = DIR_LEFT;
 	}    
 	if (keyManager[39]) { //right arrow
-		console.log("Right");
 		isPressed = true;
 		mario.right();
 		direction = DIR_RIGHT;
@@ -830,61 +871,34 @@ function draw() {
 
 	if (mario.ladderCollision) {
 		if (keyManager[38]) {
-			console.log("up");
 			isPressed = true;
 			mario.up();
 			direction = DIR_NONE;
 		}	
 	}	
-	// if (keyManager[32]) { //space key
-	// 	console.log("space");
-	// 	mario.space();
-	// }
+	
 	if(!isPressed){
 		mario.stop();
 	}
-	// Matter.Engine.run(engine);
-	//land[0][1].show()
-	//land[1][0].show()
-	//land[0][0].show()
-	
-	/*land[1][1].show()
-	land[1][2].show()
-	land[2][0].show()
-	land[2][1].show()
-	land[2][2].show()
-	land[3][0].show()
-	land[3][1].show()
-	land[3][2].show()
-	land[4][0].show()
-	land[4][1].show()
-	land[4][2].show()
-	*/
-	/*
-	for(let x = 0; x < balls.length; x++) {
-	    setTimeout(()=> {
-			balls[x].show();
-			console.log(x)
-		}, 3)	
-	}
-	*/
 	rightWall.show()
 	leftWall.show()
 	if(!isMenuActive) {
 		for(let x = 0; x < balls.length; x++) {
-			balls[x].show();
+			try {
+				balls[x].show();
+			} catch (e) {
+				start()
+			}	
 			if (balls[x].body.position.y > vp_height) {
-				console.log(x);
 				removeBall = x;
 			}
 		}
 
-	}	
-	if (mario.body.position.y > vp_height) {
-		gameDeath();
 	}
+	//checks if mario fell of the map!
+	mario.offMap()
 
-
+    //the engine for the game will only run when is active is false
 	if(!isMenuActive){
 		Matter.Engine.update(engine);
 	}else{
